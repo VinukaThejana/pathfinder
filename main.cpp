@@ -5,11 +5,13 @@ TaskHandle_t ReceiveTask;
 
 void send(void * parameter) {
     for (;;) {
+
     }
 }
 
 void receive(void * parameter) {
     for (;;) {
+
     }
 }
 
