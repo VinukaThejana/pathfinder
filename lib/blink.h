@@ -3,7 +3,6 @@
 
 #include "esp32-hal-gpio.h"
 #include "esp32-hal.h"
-#include "vtask.h"
 #include <Arduino.h>
 
 // Number of blinks
@@ -31,9 +30,9 @@ inline void vblink(
 ) {
     for (int i = 1; i <= blink_duration; i++) {
         digitalWrite(pin, HIGH);
-        vtaskdelay(blink_delay);
+        vTaskDelay(pdMS_TO_TICKS(blink_delay));
         digitalWrite(pin, LOW);
-        vtaskdelay(blink_delay);
+        vTaskDelay(pdMS_TO_TICKS(blink_delay));
     }
 }
 
