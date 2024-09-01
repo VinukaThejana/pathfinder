@@ -2,17 +2,23 @@
 #define GPIO_H
 
 #include <Arduino.h>
+#include <climits>
+#include <cstring>
+
+#define LAT "lat:"
+#define LON "lon:"
+#define SEPERATOR "|"
 
 struct Coordinates {
-    float lat;
-    float lon;
+    double lat;
+    double lon;
     bool isValid;
 
     Coordinates() : lat(0.0), lon(0.0), isValid(false) {}
-    Coordinates(float latitude, float longitude) : lat(latitude), lon(longitude), isValid(false) {}
+    Coordinates(double latitude, double longitude) : lat(latitude), lon(longitude), isValid(false) {}
 
 
-    void set(float latitude, float longitude, bool isValid) {
+    void set(double latitude, double longitude, bool isValid) {
         lat = latitude;
         lon = longitude;
         isValid = isValid;
@@ -35,25 +41,36 @@ public:
     }
 
     static Coordinates extract(const String& data) {
-        Coordinates cords;
-        int latIndex = data.indexOf("lat:");
-        int lonIndex = data.indexOf("lon:");
+        Coordinates coords;
 
-        if (latINdex == -1 || lonIndex == -1) {
-            return cords;
+        int latIndex = data.indexOf(LAT);
+        if (latIndex == -1) {
+            return coords;
         }
-
-        String latStr = data.substring(latIndex + 4, data.indexof("|", latIndex));
-        String lonStr = data.substring(lonIndex + 4, data.indexof("|", lonIndex));
-
-        float lat = latStr.toFloat();
-        float lon = lonStr.toFloat();
-
-        if (isValidLat(lat) && isValidLon(lon)) {
-            cords.set(lat, lon, true);
+        int latEndIndex = data.indexOf(SEPERATOR, latIndex);
+        if (latEndIndex == -1) latEndIndex = data.length();
+        String latStr = data.substring(latIndex + strlen(LAT), latEndIndex);
+        float lat = latStr.toDouble();
+        if (!isValidLat(lat)) {
+            return coords;
         }
+        coords.lat = lat;
 
-        return cords;
+        int lonIndex = data.indexOf(LON);
+        if (lonIndex == -1) {
+            return coords;
+        }
+        int lonEndIndex = data.indexOf(SEPERATOR, lonIndex);
+        if (lonEndIndex == -1) lonEndIndex = data.length();
+        String lonStr = data.substring(lonIndex + strlen(LON), lonEndIndex);
+        float lon = lonStr.toDouble();
+        if (!isValidLon(lon)) {
+            return coords;
+        }
+        coords.lon = lon;
+        coords.isValid = true;
+
+        return coords;
     }
 };
 
