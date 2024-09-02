@@ -27,6 +27,8 @@
 #define SERIAL_REFRESH_RATE 9600
 #define BLUETOOTH_NAME "ESP32"
 #define COORD_FILE "/coord"
+#define COORD_GET "give"
+#define COORD_GET_FAILED "err_failed_to_get_saved_coordinates"
 
 #define LED 2
 #define SD_CS 5
@@ -60,6 +62,24 @@ void receive(void * parameter) {
             continue;
         }
         String payload = String(data);
+        payload.trim();
+
+        if (payload.equalsIgnoreCase(COORD_GET)) {
+            String coords;
+            IO::ErrCode err;
+
+            xSemaphoreTake(mutex, portMAX_DELAY);
+            err = IO::read(COORD_FILE, coords);
+            xSemaphoreGive(mutex);
+            if (err != IO::SUCCESS) {
+                SerialBT.println(COORD_GET_FAILED);
+                blink(LED);
+                continue;
+            }
+
+            SerialBT.println(coords);
+            continue;
+        }
 
         Coordinates coord = GPS::extract(payload);
         if (!coord.isValid) {
