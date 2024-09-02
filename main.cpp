@@ -26,11 +26,17 @@
 #define MAX_RECEIVE_LENGTH 100 // Bytes
 #define SERIAL_REFRESH_RATE 9600
 #define BLUETOOTH_NAME "ESP32"
+
+// Name and path of the file that is used to save the coordinates
 #define COORD_FILE "/coord"
+// Keyword that is used to get the saved coordinates from the SD card
 #define COORD_GET "give"
+// Err sent when failed to get the  coordinates from the SD card
 #define COORD_GET_FAILED "err_failed_to_get_saved_coordinates"
 
+// Builtin LED for debugging
 #define LED 2
+// CS PORT for the SD card
 #define SD_CS 5
 
 // FreeRTOS Tasks
