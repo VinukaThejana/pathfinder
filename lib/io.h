@@ -13,6 +13,7 @@ public:
         SUCCESS = 0,
         FILE_OPEN_FAILED,
         WRITE_FAILED,
+        READ_FAILED
     };
 
     static ErrCode write(const char *path, const char *payload) {
@@ -21,6 +22,22 @@ public:
             return FILE_OPEN_FAILED;
         }
         file.println(payload);
+        file.close();
+        return SUCCESS;
+    }
+
+    static ErrCode read(const char *path, String &content) {
+        File file = SD.open(path);
+        if (!file) {
+            return FILE_OPEN_FAILED;
+        }
+
+        if (!file.available()) {
+            file.close();
+            return READ_FAILED;
+        }
+
+        content = file.readStringUntil('\n');
         file.close();
         return SUCCESS;
     }
