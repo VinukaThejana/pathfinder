@@ -1,17 +1,6 @@
-/**
-* Sensor configuration
-*
-*   SD Card reader
-*       - CS   = 5
-*       - MOSI = 23
-*       - MISO = 19
-*       - SCK  = 18
-*
-**/
-
-#include <HardwareSerial.h>
 #include <Arduino.h>
 #include <BluetoothSerial.h>
+#include <HardwareSerial.h>
 #include "esp32-hal-gpio.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -19,7 +8,10 @@
 #include "lib/blink.h"
 #include "lib/defer.h"
 #include "lib/gps.h"
-#include "lib/io.h"
+
+#include "sensors/io.h"
+#include "sensors/sensors.h"
+#include "sensors/ultrasonic.h"
 
 #define RECEIVE_TASK_PRIORITY 2
 #define SEND_TASK_PRIORITY 1
@@ -36,8 +28,6 @@
 
 // Builtin LED for debugging
 #define LED 2
-// CS PORT for the SD card
-#define SD_CS 5
 
 // FreeRTOS Tasks
 TaskHandle_t SendTask;
@@ -47,8 +37,22 @@ BluetoothSerial SerialBT;
 SemaphoreHandle_t mutex;
 
 void send(void * parameter) {
+    String result = "";
+    ErrCode err;
+
     for (;;) {
-        // TODO: Add the sensors here
+        err = Ultrasonic::read(result);
+        if (err != ErrCode::SUCCESS) {
+            xSemaphoreTake(mutex, portMAX_DELAY);
+            Serial.println(
+                "failed to read from ultrasonic sensor"
+            );
+            blink(LED);
+            xSemaphoreGive(mutex);
+        }
+
+        SerialBT.println(result);
+        result = "";
         vTaskDelay(pdMS_TO_TICKS(100));
     }
 }
@@ -72,12 +76,12 @@ void receive(void * parameter) {
 
         if (payload.equalsIgnoreCase(COORD_GET)) {
             String coords;
-            IO::ErrCode err;
+            ErrCode err;
 
             xSemaphoreTake(mutex, portMAX_DELAY);
             err = IO::read(COORD_FILE, coords);
             xSemaphoreGive(mutex);
-            if (err != IO::SUCCESS) {
+            if (err != ErrCode::SUCCESS) {
                 SerialBT.println(COORD_GET_FAILED);
                 blink(LED);
                 continue;
@@ -99,12 +103,12 @@ void receive(void * parameter) {
         }
 
         payload = "lat:" + String(coord.lat, 6) + "|lon:" + String(coord.lon, 6);
-        IO::ErrCode err;
+        ErrCode err;
 
         xSemaphoreTake(mutex, portMAX_DELAY);
         err = IO::write(COORD_FILE, payload.c_str());
         xSemaphoreGive(mutex);
-        if (err != IO::SUCCESS) {
+        if (err != ErrCode::SUCCESS) {
             xSemaphoreTake(mutex, portMAX_DELAY);
             Serial.println(
                 "failed to save the coordinates"
@@ -128,7 +132,8 @@ void setup() {
             blink(LED);
         }
     }
-    if (!SD.begin(SD_CS)) {
+    ErrCode err = IO::init();
+    if (err != ErrCode::SUCCESS) {
         for (;;) {
             Serial.println(
                 "SD card initialization failed"
@@ -136,6 +141,7 @@ void setup() {
             blink(LED);
         }
     }
+    Ultrasonic::init();
 
     mutex = xSemaphoreCreateMutex();
     if (mutex == NULL) {
