@@ -40,6 +40,16 @@ public:
     return ErrCode::SUCCESS;
   }
 
+  static ErrCode clear(const char *path) {
+    File file = SD.open(path, FILE_WRITE);
+    if (!file) {
+      return ErrCode::FILE_OPEN_FAILED;
+    }
+
+    file.close();
+    return ErrCode::SUCCESS;
+  }
+
   static ErrCode read(const char *path, String &content) {
     File file = SD.open(path);
     if (!file) {
