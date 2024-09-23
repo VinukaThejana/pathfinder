@@ -30,8 +30,11 @@
 class Gyro {
 private:
   static Adafruit_ADXL345_Unified accel;
-  static float pitch, roll;
-  static float x, y, x;
+  static float pitch;
+  static float roll;
+  static float x;
+  static float y;
+  static float z;
 
 public:
   static ErrCode init() {
@@ -74,7 +77,7 @@ public:
 
 #endif // !GYRO_H
 
-Adafruit_ADXL345_Unified Compass::accel = Adafruit_ADXL345_Unified(12345);
+Adafruit_ADXL345_Unified Gyro::accel = Adafruit_ADXL345_Unified(12345);
 
 float Gyro::pitch = 0;
 float Gyro::roll = 0;

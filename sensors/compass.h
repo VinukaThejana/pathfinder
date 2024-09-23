@@ -88,7 +88,7 @@ public:
 
 #endif // !COMPASS_H
 
-Adafruit_HMC5883_Unified Gyro::mag = Adafruit_HMC5883_Unified(12345);
+Adafruit_HMC5883_Unified Compass::mag = Adafruit_HMC5883_Unified(12345);
 
 float Compass::x = 0.0;
 float Compass::y = 0.0;
