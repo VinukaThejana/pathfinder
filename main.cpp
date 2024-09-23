@@ -10,9 +10,9 @@
 #include "lib/gps.h"
 
 #include "sensors/compass.h"
+#include "sensors/gyro.h"
 #include "sensors/io.h"
 #include "sensors/sensors.h"
-#include "sensors/ultrasonic.h"
 
 #define RECEIVE_TASK_PRIORITY 2
 #define SEND_TASK_PRIORITY 1
@@ -44,6 +44,14 @@ void send(void *parameter) {
   ErrCode err;
 
   for (;;) {
+    err = Gyro::read(result);
+    if (err != ErrCode::SUCCESS) {
+      xSemaphoreTake(mutex, portMAX_DELAY);
+      Serial.println("failed to read from gyro sensor");
+      blink(LED);
+      xSemaphoreGive(mutex);
+    }
+
     err = Compass::read(result);
     if (err != ErrCode::SUCCESS) {
       xSemaphoreTake(mutex, portMAX_DELAY);
@@ -191,7 +199,14 @@ void setup() {
       blink(LED);
     }
   }
-  Ultrasonic::init();
+  err = Gyro::init();
+  if (err != ErrCode::SUCCESS) {
+    for (;;) {
+      Serial.println("gyro initialization failed, check the wiring");
+      blink(LED);
+    }
+  }
+
   err = Compass::init();
   if (err != ErrCode::SUCCESS) {
     for (;;) {
