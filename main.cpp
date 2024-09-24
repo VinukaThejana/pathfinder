@@ -27,7 +27,7 @@
 // Keyword that is used to clear the saved coordinates from the SD card
 #define COORD_CLEAR "del"
 // Err sent when failed to get the  coordinates from the SD card
-#define COORD_GET_FAILED "lat:500|lon:500"
+#define COORD_GET_FAILED "lat:404|lon:404|"
 
 // Builtin LED for debugging
 #define LED 2
@@ -60,11 +60,10 @@ void send(void *parameter) {
       xSemaphoreGive(mutex);
     }
 
+    result += "|";
+
     // NOTE: send the readings obtained from the sensors to the user
     SerialBT.println(result);
-    xSemaphoreTake(mutex, portMAX_DELAY);
-    Serial.println(result);
-    xSemaphoreGive(mutex);
 
     result = "";
     vTaskDelay(pdMS_TO_TICKS(100));
@@ -112,7 +111,7 @@ void receive(void *parameter) {
         continue;
       }
 
-      SerialBT.println(String(200) + "|" + coords);
+      SerialBT.println(coords + "|");
       continue;
     }
 
@@ -156,7 +155,7 @@ void receive(void *parameter) {
     if (!coord.isValid) {
       SerialBT.println("400");
       xSemaphoreTake(mutex, portMAX_DELAY);
-      Serial.println("coordinates are not valid");
+      Serial.println("unidentified coordinates");
       blink(LED);
       xSemaphoreGive(mutex);
       continue;
